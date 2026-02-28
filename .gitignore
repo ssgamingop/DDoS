@@ -1,1 +1,37 @@
-api/
+# Backend / Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.env
+
+# Logs and local processing
+logs/
+*.log
+data/raw/
+data/processed/
+output/
+*.tif
+
+# Frontend / Next.js
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
+dashboard/build/
+dashboard/.env*.local
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Jupyter Notebooks
+.ipynb_checkpoints
