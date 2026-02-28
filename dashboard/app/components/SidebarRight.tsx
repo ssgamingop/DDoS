@@ -15,7 +15,7 @@ export default function SidebarRight({ data }: { data: FloodData | null }) {
         <div className="h-1 w-12 bg-gradient-to-r from-cyan-500 to-transparent rounded-full mb-4" />
       </div>
 
-      <AlertPanel risk={displayData.risk} />
+      <AlertPanel risk={displayData.risk} reasons={displayData.reasons} confidence={displayData.confidence} />
 
       <div className="bg-gradient-to-b from-[#0f172a]/80 to-[#040814]/80 p-5 rounded-xl border border-cyan-500/10 shadow-[0_4px_20px_rgba(0,0,0,0.4)] flex-1 relative overflow-hidden flex flex-col">
         <div className="flex items-center justify-between mb-4">

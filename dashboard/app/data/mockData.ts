@@ -8,6 +8,9 @@ export type FloodData = {
   lng: number
   coordinates?: number[][]
   trend?: { day: string; flood: number }[]
+  reasons?: string[]
+  confidence?: number
+  explanation?: string
 }
 
 export const mockData: FloodData = {

@@ -9,6 +9,7 @@ import dynamic from "next/dynamic"
 import { Globe } from "lucide-react"
 
 const MapView = dynamic(() => import("./components/MapView"), { ssr: false })
+const HistoryPanel = dynamic(() => import("./components/HistoryPanel"), { ssr: false })
 
 export default function Page() {
   const [initialLoading, setInitialLoading] = useState(true)
@@ -69,8 +70,8 @@ export default function Page() {
         <SidebarLeft data={data} />
 
         <div className="flex-grow relative z-0">
-          <MapView setData={setData} setAnalyzing={setAnalyzing} />
-          {/* future backend hook: const data = await fetch("/api/flood") */}
+          <HistoryPanel />
+          <MapView setData={setData} setAnalyzing={setAnalyzing} analyzing={analyzing} />
         </div>
 
         <SidebarRight data={data} />
