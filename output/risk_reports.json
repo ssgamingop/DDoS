@@ -1,0 +1,11 @@
+{
+    "region": "Mumbai",
+    "past_water_area_km2": 0.37,
+    "recent_water_area_km2": 2.83,
+    "increase_percent": 664.86,
+    "flood_expansion_area_km2": 2.81,
+    "average_rainfall_mm": 444.51,
+    "risk_level": "CRITICAL",
+    "confidence_score": 100,
+    "timestamp": "2026-02-28T10:20:31.979453"
+}

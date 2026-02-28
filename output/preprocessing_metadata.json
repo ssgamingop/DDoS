@@ -1,0 +1,13 @@
+{
+    "processing": "NDWI calculation",
+    "formula": "(Green - NIR) / (Green + NIR)",
+    "band_order": {
+        "band_1": "Green (B3)",
+        "band_2": "NIR (B8)"
+    },
+    "past_ndwi_min": -0.7478739369684843,
+    "past_ndwi_max": 0.3409947926019034,
+    "recent_ndwi_min": -0.7916838205022643,
+    "recent_ndwi_max": 0.38687392055267705,
+    "timestamp": "2026-02-28T11:28:21.361428"
+}

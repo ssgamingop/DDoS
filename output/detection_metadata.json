@@ -1,0 +1,9 @@
+{
+    "ndwi_threshold": 0.3,
+    "pixel_resolution": 30,
+    "past_area_km2": 0.01,
+    "recent_area_km2": 0.19,
+    "flood_expansion_km2": 0.19,
+    "percent_increase": 2200.0,
+    "timestamp": "2026-02-28T11:38:29.011828"
+}
