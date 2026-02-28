@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import os
+from .logging_utils import log_event
 
 def classify_risk(recent_area, percent_increase):
 
@@ -33,5 +34,16 @@ def run_risk_engine(past_area, recent_area, flood_area, percent_increase):
 
     with open("output/risk_report.json", "w") as f:
         json.dump(report, f, indent=4)
+
+    log_event(
+        "risk_engine",
+        "report_written",
+        output_path="output/risk_report.json",
+        risk_level=risk_level,
+        past_area_km2=report["past_area_km2"],
+        recent_area_km2=report["recent_area_km2"],
+        flood_expansion_km2=report["flood_expansion_km2"],
+        percent_increase=report["percent_increase"],
+    )
 
     return risk_level

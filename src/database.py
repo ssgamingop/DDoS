@@ -1,6 +1,7 @@
 import sqlite3
 import os
 from datetime import datetime
+from .logging_utils import log_event
 
 DB_PATH = "data/risk_history.db"
 
@@ -22,6 +23,7 @@ def init_db():
     ''')
     conn.commit()
     conn.close()
+    log_event("database", "initialized", db_path=DB_PATH)
 
 def save_analysis(lat: float, lng: float, risk_level: str, expansion: float):
     conn = sqlite3.connect(DB_PATH)
@@ -35,6 +37,16 @@ def save_analysis(lat: float, lng: float, risk_level: str, expansion: float):
     
     conn.commit()
     conn.close()
+    log_event(
+        "database",
+        "analysis_saved",
+        db_path=DB_PATH,
+        timestamp=timestamp,
+        lat=lat,
+        lng=lng,
+        risk_level=risk_level,
+        water_expansion_km2=expansion,
+    )
 
 def get_recent_history(limit=10):
     conn = sqlite3.connect(DB_PATH)

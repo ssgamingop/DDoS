@@ -11,6 +11,8 @@ export type FloodData = {
   reasons?: string[]
   confidence?: number
   explanation?: string
+  elevation_m?: number
+  exposed_builtup_km2?: number
 }
 
 export const mockData: FloodData = {

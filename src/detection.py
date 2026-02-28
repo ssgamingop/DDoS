@@ -2,8 +2,17 @@ import rasterio
 import numpy as np
 from scipy.ndimage import binary_opening, binary_closing
 from .config import CONFIG
+from .logging_utils import log_event
 
 def run_detection():
+    log_event(
+        "detection",
+        "started",
+        threshold=CONFIG["ndwi_threshold"],
+        pixel_resolution=CONFIG["pixel_resolution"],
+        past_ndwi_path="data/processed/past_ndwi.tif",
+        recent_ndwi_path="data/processed/recent_ndwi.tif",
+    )
 
     with rasterio.open("data/processed/past_ndwi.tif") as src:
         past_ndwi = src.read(1)
@@ -35,5 +44,15 @@ def run_detection():
 
     with rasterio.open("data/processed/flood_expansion.tif", "w", **profile) as dst:
         dst.write(flood_expansion.astype(rasterio.uint8), 1)
+
+    log_event(
+        "detection",
+        "completed",
+        output_path="data/processed/flood_expansion.tif",
+        past_area_km2=round(float(past_area), 4),
+        recent_area_km2=round(float(recent_area), 4),
+        flood_expansion_km2=round(float(flood_area), 4),
+        percent_increase=round(float(percent_increase), 2),
+    )
 
     return past_area, recent_area, flood_area, percent_increase

@@ -2,10 +2,27 @@ import ee
 import geemap
 import os
 from .config import CONFIG
+from .logging_utils import log_event
 
 def run_ingestion():
+    log_event(
+        "ingestion",
+        "config_loaded",
+        region_name=CONFIG["region_name"],
+        roi=CONFIG["roi"],
+        dataset=CONFIG["dataset"],
+        past_start=CONFIG["past_start"],
+        past_end=CONFIG["past_end"],
+        recent_start=CONFIG["recent_start"],
+        recent_end=CONFIG["recent_end"],
+        cloud_threshold=CONFIG["cloud_threshold"],
+    )
 
-    ee.Initialize(project="gen-lang-client-0997797287")
+    try:
+        ee.Initialize(project="gen-lang-client-0997797287")
+    except Exception as exc:
+        log_event("ingestion", "failed", error=str(exc))
+        raise
 
     os.makedirs("data/raw", exist_ok=True)
 
@@ -28,6 +45,7 @@ def run_ingestion():
 
     past_image, past_count = fetch_image(CONFIG["past_start"], CONFIG["past_end"])
     recent_image, recent_count = fetch_image(CONFIG["recent_start"], CONFIG["recent_end"])
+    log_event("ingestion", "collections_ready", past_image_count=past_count, recent_image_count=recent_count)
 
     geemap.ee_export_image(
         past_image.select(["B3", "B8"]),
@@ -36,6 +54,7 @@ def run_ingestion():
         region=region,
         file_per_band=False
     )
+    log_event("ingestion", "past_image_exported", output_path="data/raw/past_image.tif")
 
     geemap.ee_export_image(
         recent_image.select(["B3", "B8"]),
@@ -44,5 +63,6 @@ def run_ingestion():
         region=region,
         file_per_band=False
     )
+    log_event("ingestion", "recent_image_exported", output_path="data/raw/recent_image.tif")
 
     return past_count, recent_count
