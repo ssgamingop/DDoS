@@ -68,7 +68,7 @@ export default function Page() {
 
         <SidebarLeft data={data} />
 
-        <div className="flex-1 relative">
+        <div className="flex-grow relative z-0">
           <MapView setData={setData} setAnalyzing={setAnalyzing} />
           {/* future backend hook: const data = await fetch("/api/flood") */}
         </div>
