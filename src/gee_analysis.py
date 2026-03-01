@@ -1,30 +1,46 @@
+import os
 import ee
 from datetime import date, timedelta
 
 from .logging_utils import log_event
 
-# Initialize Earth Engine globally
+# Initialize Earth Engine globally with a preflight so the API fails loud when auth is missing.
+PROJECT_ID = os.environ.get("GEE_PROJECT", "gen-lang-client-0997797287")
+GEE_READY = False
+GEE_INIT_ERROR = None
+
 try:
-    ee.Initialize(project="gen-lang-client-0997797287")
-    print("Earth Engine Initialized Successfully in API Backend")
-    log_event("gee", "initialized", project_id="gen-lang-client-0997797287")
+    ee.Initialize(project=PROJECT_ID)
+    # Cheap credential check; will raise if auth is absent/expired.
+    ee.Number(1).getInfo()
+    GEE_READY = True
+    print("Earth Engine initialized successfully in API backend")
+    log_event("gee", "initialized", project_id=PROJECT_ID)
 except Exception as e:
+    GEE_INIT_ERROR = str(e)
     print(f"Failed to initialize Earth Engine: {e}")
-    log_event("gee", "init_failed", error=str(e), project_id="gen-lang-client-0997797287")
+    log_event("gee", "init_failed", error=GEE_INIT_ERROR, project_id=PROJECT_ID)
 
 # Constants
 dataset_str = "COPERNICUS/S2_SR_HARMONIZED"
 cloud_thresh = 30
-scale = 30
+scale = 10  # align with preprocessing/export resolution
+roi_radius_m = 18_000  # 18 km circle to approximate bbox used in pipeline
 water_index_thresh = 0.15
-min_significant_expansion_km2 = 0.05
+min_significant_expansion_km2 = 0.01
 
-# Keep periods relative to "today" to avoid stale/future windows.
+# Refined window logic for accurate anomaly detection:
+# 'Past' is the historical dry/pre-monsoon baseline across multiple years.
+# 'Recent' focuses tightly on the most recent monsoon/peak flood season.
 today_utc = date.today()
-PAST_START = (today_utc - timedelta(days=365 * 6)).isoformat()
-PAST_END = (today_utc - timedelta(days=366)).isoformat()
-RECENT_START = (today_utc - timedelta(days=365)).isoformat()
-RECENT_END = today_utc.isoformat()
+current_year = today_utc.year
+last_year = current_year - 1
+
+PAST_START = f"{current_year - 5}-01-01"
+PAST_END = f"{current_year - 1}-05-31"      # Dry season baselines
+
+RECENT_START = f"{last_year}-07-01"         # Monsoon peak
+RECENT_END = f"{last_year}-10-31"
 
 
 def _mask_sentinel2_quality(image: ee.Image) -> ee.Image:
@@ -46,11 +62,29 @@ def _classify_risk(expansion_km2: float, percent_increase: float) -> str:
     - absolute expansion prevents large-area events being marked LOW,
     - percent increase keeps sensitivity to sharp growth.
     """
-    if expansion_km2 >= 20 or (expansion_km2 >= 5 and percent_increase >= 50):
+    if expansion_km2 >= 10 or (expansion_km2 >= 2 and percent_increase >= 35):
         return "HIGH"
-    if expansion_km2 >= 5 or (expansion_km2 >= 1 and percent_increase >= 25):
+    if expansion_km2 >= 1 or (expansion_km2 >= 0.5 and percent_increase >= 15):
         return "MODERATE"
     return "LOW"
+
+
+def _bump_risk(current: str, steps: int = 1) -> str:
+    order = ["LOW", "MODERATE", "HIGH"]
+    try:
+        idx = order.index(current)
+    except ValueError:
+        return current
+    return order[min(len(order) - 1, idx + steps)]
+
+
+def assert_gee_ready():
+    """Raise a clear error when GEE credentials are missing/expired."""
+    if not GEE_READY:
+        hint = "Authenticate with `earthengine authenticate` or configure a service account JSON via GOOGLE_APPLICATION_CREDENTIALS."
+        raise RuntimeError(
+            f"Google Earth Engine not initialized for project '{PROJECT_ID}'. {GEE_INIT_ERROR or hint}"
+        )
 
 
 def analyze_point_on_gee(lat: float, lng: float, request_id: str = ""):
@@ -72,9 +106,11 @@ def analyze_point_on_gee(lat: float, lng: float, request_id: str = ""):
     )
 
     try:
-        # 1. Define ROI: 10km radius around the clicked point
+        assert_gee_ready()
+
+        # 1. Define ROI: ~18km radius to match pipeline bbox footprint
         point = ee.Geometry.Point([lng, lat])
-        roi = point.buffer(10000)  # 10km
+        roi = point.buffer(roi_radius_m)
 
         def get_water_data(start_date, end_date):
             collection = (
@@ -212,6 +248,10 @@ def analyze_point_on_gee(lat: float, lng: float, request_id: str = ""):
         else:
             if expansion > 0:
                 reasons.append(f"Minor / normal water fluctuations observed (+{round(expansion, 2)} km²).")
+                if expansion < 1:
+                    reasons.append(
+                        "Expansion footprint is <1 km²; impact remains LOW even though the percent change can appear large when the baseline was dry."
+                    )
             else:
                 reasons.append("No water expansion detected. Current water levels are at or below historical baselines.")
 
@@ -222,6 +262,24 @@ def analyze_point_on_gee(lat: float, lng: float, request_id: str = ""):
             reasons.append(
                 f"The location is low-lying ({round(elevation_val, 1)}m) and generally susceptible to flash floods, but no current anomalies detected."
             )
+
+        # Exposure-based escalation: small geometric growth but high human/built exposure.
+        if exposed_pop > 200_000 or exposed_builtup_km2 > 2:
+            if risk != "HIGH":
+                reasons.append("Risk escalated to HIGH because exposed population/built-up footprint is very high.")
+            risk = _bump_risk(risk, steps=2)
+        elif exposed_pop > 50_000 or exposed_builtup_km2 > 0.5:
+            if risk == "LOW":
+                reasons.append("Risk elevated to MODERATE due to substantial population or built-up exposure despite modest water growth.")
+            risk = _bump_risk(risk, steps=1)
+
+        # Coastal surge sensitivity: small expansion on very low terrain.
+        if elevation_val < 5 and expansion >= 0.2 and risk == "LOW":
+            risk = _bump_risk(risk, steps=1)
+            reasons.append("Risk elevated for coastal low-lying area; even small expansion can impact drainage/sea-level interactions.")
+        elif elevation_val < 10 and expansion >= 0.3 and risk == "LOW":
+            risk = _bump_risk(risk, steps=1)
+            reasons.append("Risk elevated for low-lying terrain with notable water spread (>0.3 km²).")
 
         # Vectorize expansion mask for frontend rendering
         extracted_coords = []
@@ -273,6 +331,8 @@ def analyze_point_on_gee(lat: float, lng: float, request_id: str = ""):
             water_expansion_km2=result["water_expansion_km2"],
             expansion_percentage=result["expansion_percentage"],
             elevation_m=round(float(elevation_val), 2),
+            exposed_population=exposed_pop,
+            exposed_builtup_km2=round(exposed_builtup_km2, 3),
             past_scene_count=past_scene_count,
             recent_scene_count=recent_scene_count,
             cloud_threshold=cloud_thresh,

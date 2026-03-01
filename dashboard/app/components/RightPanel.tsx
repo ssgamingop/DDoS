@@ -57,16 +57,16 @@ export default function RightPanel({
 
     const exposureData = [
         { name: "Flood", value: Number((data?.flood_area || 0).toFixed(2)) },
-        { name: "Built-up", value: Number(builtup.toFixed(2)) },
-        { name: "Population (K)", value: Number((population / 1000).toFixed(1)) },
+        { name: "Urban", value: Number(builtup.toFixed(2)) },
+        { name: "Pop (K)", value: Number((population / 1000).toFixed(1)) },
     ]
 
     const driverData = [
         { metric: "Expansion", value: clampTo100(expansionPct) },
-        { metric: "Low Terrain", value: clampTo100(100 - elevation * 2) },
-        { metric: "Population", value: clampTo100(population / 5000) },
-        { metric: "Built-up", value: clampTo100(builtup * 120) },
-        { metric: "Water Load", value: clampTo100(latest * 2) },
+        { metric: "Low Elev", value: clampTo100(100 - elevation * 2) },
+        { metric: "Pop Risk", value: clampTo100(population / 5000) },
+        { metric: "Urban", value: clampTo100(builtup * 120) },
+        { metric: "Water Ld", value: clampTo100(latest * 2) },
     ]
 
     return (
@@ -138,11 +138,24 @@ export default function RightPanel({
                             <p className="text-[9px] text-gray-300 uppercase tracking-widest font-semibold mb-1.5">Risk Drivers</p>
                             <div className="h-36 xl:h-44 relative -mx-2">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <RadarChart data={driverData} outerRadius="60%" cx="50%" cy="50%">
+                                    <RadarChart data={driverData} outerRadius="45%" cx="50%" cy="50%">
                                         <PolarGrid stroke="rgba(148,163,184,0.25)" />
                                         <PolarAngleAxis dataKey="metric" tick={{ fill: "#cbd5e1", fontSize: 9 }} />
                                         <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
                                         <Radar dataKey="value" stroke="#22d3ee" fill="#22d3ee" fillOpacity={0.35} />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: "rgba(3,7,18,0.95)",
+                                                border: "1px solid rgba(34,211,238,0.3)",
+                                                borderRadius: "6px",
+                                                padding: "4px 8px",
+                                                fontSize: "10px",
+                                                color: "#e2e8f0",
+                                            }}
+                                            itemStyle={{ color: "#22d3ee", fontSize: "11px", fontWeight: "bold" }}
+                                            labelStyle={{ display: "none" }}
+                                            formatter={(value: any, name: any, props: any) => [Number(value).toFixed(0), props.payload.metric]}
+                                        />
                                     </RadarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -152,19 +165,24 @@ export default function RightPanel({
                             <p className="text-[9px] text-gray-300 uppercase tracking-widest font-semibold mb-1.5">Exposure</p>
                             <div className="h-36 xl:h-44">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={exposureData}>
+                                    <BarChart data={exposureData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.18)" vertical={false} />
                                         <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 9 }} interval={0} />
-                                        <YAxis stroke="#94a3b8" tick={{ fontSize: 10 }} />
+                                        <YAxis stroke="#94a3b8" tick={{ fontSize: 9 }} />
                                         <Tooltip
+                                            cursor={{ fill: "rgba(34,211,238,0.1)" }}
                                             contentStyle={{
                                                 backgroundColor: "rgba(3,7,18,0.95)",
                                                 border: "1px solid rgba(34,211,238,0.3)",
-                                                borderRadius: "8px",
+                                                borderRadius: "6px",
+                                                padding: "4px 8px",
                                                 color: "#e2e8f0",
                                             }}
+                                            itemStyle={{ color: "#22d3ee", fontSize: "11px", fontWeight: "bold" }}
+                                            labelStyle={{ color: "#94a3b8", fontSize: "10px", marginBottom: "2px", fontWeight: "600" }}
+                                            formatter={(value) => [value, "Value"]}
                                         />
-                                        <Bar dataKey="value" radius={[6, 6, 0, 0]} fill="#06b6d4" />
+                                        <Bar dataKey="value" radius={[4, 4, 0, 0]} fill="#06b6d4" maxBarSize={30} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>

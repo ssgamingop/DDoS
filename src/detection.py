@@ -38,7 +38,13 @@ def run_detection():
     recent_area = np.sum(recent_clean) * pixel_area
     flood_area = np.sum(flood_expansion) * pixel_area
 
-    percent_increase = ((recent_area - past_area) / past_area) * 100 if past_area != 0 else 0
+    # Guard against tiny baselines inflating percent change; if baseline < 0.1 km², report as not reliable.
+    if past_area < 0.1:
+        percent_increase = 0.0
+        reliability_note = "Percent change suppressed: historical water area <0.1 km²."
+    else:
+        percent_increase = ((recent_area - past_area) / past_area) * 100
+        reliability_note = ""
 
     profile.update(dtype=rasterio.uint8, count=1)
 
@@ -53,6 +59,7 @@ def run_detection():
         recent_area_km2=round(float(recent_area), 4),
         flood_expansion_km2=round(float(flood_area), 4),
         percent_increase=round(float(percent_increase), 2),
+        reliability_note=reliability_note,
     )
 
     return past_area, recent_area, flood_area, percent_increase

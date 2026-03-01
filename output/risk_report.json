@@ -1,9 +1,10 @@
 {
     "region": "Mumbai",
-    "past_area_km2": 0.01,
-    "recent_area_km2": 0.19,
-    "flood_expansion_km2": 0.19,
-    "percent_increase": 2200.0,
-    "risk_level": "LOW",
-    "timestamp": "2026-02-28T13:51:27.874212"
+    "past_area_km2": 9.57,
+    "recent_area_km2": 17.49,
+    "flood_expansion_km2": 7.98,
+    "percent_increase": 82.85,
+    "risk_level": "HIGH",
+    "timestamp": "2026-03-01T04:01:30.386721",
+    "reliability_note": ""
 }

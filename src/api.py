@@ -1,9 +1,11 @@
+import os
+import uuid
+from typing import List
+
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-import uvicorn
-from typing import List
-import uuid
 
 from src.database import init_db, save_analysis, get_recent_history
 from src.logging_utils import log_event
@@ -17,10 +19,19 @@ def startup_event():
     log_event("api", "startup_completed")
 
 # Add CORS middleware to allow Next.js frontend to communicate with this API
+origins_env = os.environ.get("ALLOWED_ORIGINS")
+if origins_env:
+    allowed_origins = [o.strip() for o in origins_env.split(",") if o.strip()]
+else:
+    # sensible local default instead of wildcard to support cookies
+    allowed_origins = ["http://localhost:3000"]
+
+allow_creds = False if "*" in allowed_origins else True
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow broader connection during local Next.js dev
-    allow_credentials=True,
+    allow_origins=allowed_origins,
+    allow_credentials=allow_creds,
     allow_methods=["*"],
     allow_headers=["*"],
 )

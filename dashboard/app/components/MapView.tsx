@@ -19,6 +19,24 @@ export default function MapView({ selectedLocation, onLocationSelect, data }: Ma
     const markerRef = useRef<maplibregl.Marker | null>(null)
     const animFrame = useRef<number>(0)
 
+    const ROI_RADIUS_KM = 18  // align with backend ~18km ROI
+
+    const makeCircle = (lng: number, lat: number, radiusKm: number, steps = 128): number[][] => {
+        const coords: number[][] = []
+        const d2r = Math.PI / 180
+        const r2d = 180 / Math.PI
+        const earth = 6371 // km
+        const latRad = lat * d2r
+        const degDist = radiusKm / earth
+        for (let i = 0; i <= steps; i++) {
+            const bearing = (i / steps) * 2 * Math.PI
+            const lat2 = Math.asin(Math.sin(latRad) * Math.cos(degDist) + Math.cos(latRad) * Math.sin(degDist) * Math.cos(bearing))
+            const lon2 = lng * d2r + Math.atan2(Math.sin(bearing) * Math.sin(degDist) * Math.cos(latRad), Math.cos(degDist) - Math.sin(latRad) * Math.sin(lat2))
+            coords.push([lon2 * r2d, lat2 * r2d])
+        }
+        return coords
+    }
+
     useEffect(() => {
         if (map.current || !mapContainer.current) return
 
@@ -75,6 +93,13 @@ export default function MapView({ selectedLocation, onLocationSelect, data }: Ma
                     features: []
                 }
             })
+            map.current?.addSource("scan-roi", {
+                type: "geojson",
+                data: {
+                    type: "FeatureCollection",
+                    features: []
+                }
+            })
 
             map.current?.addLayer({
                 id: "flood-layer-fill",
@@ -92,6 +117,26 @@ export default function MapView({ selectedLocation, onLocationSelect, data }: Ma
                 paint: {
                     "line-color": "rgba(239, 68, 68, 0)", // Default hidden
                     "line-width": 2
+                }
+            })
+
+            map.current?.addLayer({
+                id: "scan-roi-fill",
+                type: "fill",
+                source: "scan-roi",
+                paint: {
+                    "fill-color": "rgba(34, 211, 238, 0.12)",
+                    "fill-outline-color": "rgba(34, 211, 238, 0.35)"
+                }
+            })
+            map.current?.addLayer({
+                id: "scan-roi-line",
+                type: "line",
+                source: "scan-roi",
+                paint: {
+                    "line-color": "rgba(34, 211, 238, 0.7)",
+                    "line-width": 1.3,
+                    "line-dasharray": [2, 2]
                 }
             })
 
@@ -143,6 +188,25 @@ export default function MapView({ selectedLocation, onLocationSelect, data }: Ma
         markerRef.current = new maplibregl.Marker({ element: markerEl, anchor: "bottom" })
             .setLngLat([lng, lat])
             .addTo(map.current!)
+
+        // Update scan ROI overlay
+        const roiSource = map.current.getSource("scan-roi") as maplibregl.GeoJSONSource
+        if (roiSource) {
+            const ring = makeCircle(lng, lat, ROI_RADIUS_KM)
+            roiSource.setData({
+                type: "FeatureCollection",
+                features: [
+                    {
+                        type: "Feature",
+                        properties: { radius_km: ROI_RADIUS_KM },
+                        geometry: {
+                            type: "Polygon",
+                            coordinates: [ring]
+                        }
+                    }
+                ]
+            })
+        }
 
     }, [selectedLocation])
 

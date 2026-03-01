@@ -1,6 +1,6 @@
+import os
 import ee
 import geemap
-import os
 from .config import CONFIG
 from .logging_utils import log_event
 
@@ -19,7 +19,8 @@ def run_ingestion():
     )
 
     try:
-        ee.Initialize(project="gen-lang-client-0997797287")
+        project_id = os.environ.get("GEE_PROJECT", "gen-lang-client-0997797287")
+        ee.Initialize(project=project_id)
     except Exception as exc:
         log_event("ingestion", "failed", error=str(exc))
         raise

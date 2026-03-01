@@ -3,11 +3,13 @@ from src.preprocessing import run_preprocessing
 from src.detection import run_detection
 from src.risk_engine import run_risk_engine
 from src.logging_utils import log_event
+from src.gee_analysis import assert_gee_ready
 
 def main():
     log_event("pipeline", "started")
 
     try:
+        assert_gee_ready()
         print("Running ingestion...")
         log_event("ingestion", "started")
         past_count, recent_count = run_ingestion()
