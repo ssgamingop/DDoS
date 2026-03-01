@@ -3,22 +3,17 @@ import json
 import os
 from .logging_utils import log_event
 
-def classify_risk(recent_area, percent_increase):
-
-    if recent_area < 1:
-        return "LOW"
-
-    if percent_increase > 200:
+def classify_risk(flood_expansion_km2, percent_increase):
+    # Same hybrid thresholds used by the live API path.
+    if flood_expansion_km2 >= 20 or (flood_expansion_km2 >= 5 and percent_increase >= 50):
         return "HIGH"
-
-    if percent_increase > 50:
+    if flood_expansion_km2 >= 5 or (flood_expansion_km2 >= 1 and percent_increase >= 25):
         return "MODERATE"
-
     return "LOW"
 
 def run_risk_engine(past_area, recent_area, flood_area, percent_increase):
 
-    risk_level = classify_risk(recent_area, percent_increase)
+    risk_level = classify_risk(flood_area, percent_increase)
 
     report = {
         "region": "Mumbai",

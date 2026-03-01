@@ -1,26 +1,102 @@
 @import "tailwindcss";
 @import "maplibre-gl/dist/maplibre-gl.css";
 
-body {
-  background: #05070d;
-  color: #e2e8f0;
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
 }
 
-.glow {
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+@layer base {
+  :root {
+    --bg: #000000;
+    --surface: #0a0f19;
+    --glass-bg: rgba(10, 15, 25, 0.85);
+    /* Removed cyan border glow */
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --accent: #22d3ee;
+    --accent-glow: rgba(0, 255, 255, 0.2);
+
+    /* Unified Risk Colors */
+    --risk-low: #22c55e;
+    --risk-moderate: #eab308;
+    --risk-high: #ef4444;
+  }
+
+  body {
+    background: var(--bg);
+    color: #e2e8f0;
+    /* Keeping original text color for now, can be changed to var(--foreground) if defined */
+  }
 }
 
-.scan-ring {
-  width: 50px;
-  height: 50px;
-  border: 2px solid cyan;
-  border-radius: 50%;
-  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-  box-shadow: 0 0 15px cyan, inset 0 0 10px cyan;
-  pointer-events: none;
-}
+@layer components {
 
-@keyframes pulse-ring {
-  0% { transform: scale(0.1); opacity: 1; border-width: 4px; }
-  100% { transform: scale(1.5); opacity: 0; border-width: 0px; }
+  /* Unified Glass Panel Style */
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .glow {
+    box-shadow: none;
+  }
+
+  .text-glow {
+    text-shadow: none;
+  }
+
+  .map-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .risk-marker {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .risk-marker::after {
+    content: '';
+    width: 18px;
+    height: 18px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: linear-gradient(145deg, #22d3ee, #0891b2);
+    border: 2px solid rgba(8, 47, 73, 0.85);
+    box-shadow: 0 0 14px rgba(34, 211, 238, 0.45);
+    display: block;
+  }
+
+  .maplibregl-ctrl-bottom-right {
+    margin: 0 16px 16px 0;
+    display: none !important;
+  }
+
+  .maplibregl-ctrl-group {
+    border: 1px solid rgba(34, 211, 238, 0.25);
+    background: rgba(4, 12, 24, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45);
+  }
+
+  .maplibregl-ctrl-group button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .maplibregl-ctrl-group button span {
+    filter: invert(87%) sepia(12%) saturate(756%) hue-rotate(144deg) brightness(104%) contrast(95%);
+  }
 }

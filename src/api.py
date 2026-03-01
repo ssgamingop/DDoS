@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import uvicorn
 from typing import List
 import uuid
@@ -26,18 +26,20 @@ app.add_middleware(
 )
 
 class LocationRequest(BaseModel):
-    lat: float
-    lng: float
+    lat: float = Field(..., ge=-90, le=90)
+    lng: float = Field(..., ge=-180, le=180)
 
 class AnalysisResponse(BaseModel):
     risk_level: str
     past_water_km2: float
+    recent_water_km2: float = 0.0
     water_expansion_km2: float
     expansion_percentage: float
     reasons: List[str]
     elevation_m: float = 0.0
     exposed_population: int = 0
     exposed_builtup_km2: float = 0.0
+    coordinates: List[List[List[List[float]]]] = []
 
 @app.get("/")
 def read_root():
@@ -81,7 +83,7 @@ async def analyze_location(request: LocationRequest):
         return result
     except Exception as e:
         log_event("api", "analysis_failed", request_id=request_id, lat=lat, lng=lng, error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Analysis failed (request_id={request_id})")
 
 if __name__ == "__main__":
     uvicorn.run("src.api:app", host="0.0.0.0", port=8000, reload=True)
