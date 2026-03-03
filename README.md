@@ -377,12 +377,15 @@ SentinelIQ/
       <b>Somyajeet Singh</b><br/>
       <sub>🛰️ Satellite Intelligence & GEE Engineer</sub><br/><br/>
       <a href="http://linkedin.com/in/somyajeetsingh"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white" /></a>
+      <a href="https://www.instagram.com/somyajeet.op/"><img src="https://img.shields.io/badge/Instagram-E4405F?style=flat-square&logo=instagram&logoColor=white" /></a>
+      <a href="https://somyacodes.in/"><img src="https://img.shields.io/badge/Portfolio-000?style=flat-square&logo=vercel&logoColor=white" /></a>
     </td>
     <td align="center" width="33%">
       <img src="assets/screenshots/Divyanshu dev3.jpeg" width="140" style="border-radius:50%" /><br/><br/>
       <b>Divyanshu Shahi</b><br/>
       <sub>🎨 Frontend & Data Visualization Engineer</sub><br/><br/>
       <a href="http://linkedin.com/in/divyanshu-shahi"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=flat-square&logo=linkedin&logoColor=white" /></a>
+      <a href="https://www.instagram.com/beingdivyanshupratapshahi/"><img src="https://img.shields.io/badge/Instagram-E4405F?style=flat-square&logo=instagram&logoColor=white" /></a>
     </td>
   </tr>
 </table>

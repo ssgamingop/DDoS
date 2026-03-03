@@ -585,3 +585,5 @@
 {"timestamp": "2026-03-03T04:09:33.543442+00:00", "stage": "api", "status": "startup_completed"}
 {"timestamp": "2026-03-03T04:10:55.407125+00:00", "stage": "database", "status": "initialized", "details": {"db_path": "data/risk_history.db"}}
 {"timestamp": "2026-03-03T04:10:55.407546+00:00", "stage": "api", "status": "startup_completed"}
+{"timestamp": "2026-03-03T04:17:14.262532+00:00", "stage": "database", "status": "initialized", "details": {"db_path": "data/risk_history.db"}}
+{"timestamp": "2026-03-03T04:17:14.262998+00:00", "stage": "api", "status": "startup_completed"}
