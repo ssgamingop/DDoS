@@ -46,7 +46,7 @@ We synthesize **real-time Copernicus Sentinel-2 satellite imagery** with **Googl
 ## ✨ Hero
 
 <p align="center">
-  <!-- video -->
+https://github.com/user-attachments/assets/20cda1bf-eb89-4f99-8105-d9d891984e5c
 </p>
 
 <p align="center">
